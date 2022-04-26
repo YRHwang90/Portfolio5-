@@ -1,0 +1,95 @@
+---
+
+title: "portfolio 5"
+author: "Yoo Ri Hwang"
+date: "4/26/2022"
+output: github_document
+---
+
+# Overview
+
+In this portfolio, I aimed to be familair with regression, especially when the DV is non-normal.
+Especially, this project will investigate when the DV is binomail. (which menas that DV is just 0 or 1)
+
+A conventional regression (OLS) assumes that DV is normally distributed. However, if DV is not normally distributed, it violates this assumption.
+
+Of Course, if the sample size is large enough, linear regression remains sounds (source: https://iovs.arvojournals.org/article.aspx?articleid=2128171)
+
+
+## package
+
+```{r}
+
+
+library(psych)
+library(ggplot2)
+library(tidyverse)
+```
+
+## load the data
+
+```{r}
+filepath <- "https://quantdev.ssri.psu.edu/sites/qdev/files/wisc3raw_gender.csv"
+wisc3raw <- read.csv(file=url(filepath),header=TRUE)
+
+## select the information that we need
+wiscsub <- wisc3raw[ , c("id","verb1","verb2","verb4","verb6","momed","grad", "female")]
+
+describe(wiscsub)
+
+
+
+```
+
+If the outcome variable is binary, using the logistic link function seems to be recomanded.
+
+```{r}
+
+model1<-glm(grad~1 + verb1 + female + verb1*female, 
+            famil='binomial',
+            data=wiscsub,
+            na.action=na.exclude)
+
+summary(model1)
+
+```
+
+```{r}
+
+coef(model1)
+exp(coef(model1))
+```
+This binomial regression modelded the variable to log(odds) to Y to be 1. 
+To interpret easily, I put exp() function to the coef.
+
+one unit increase in verb1 score may increase the odds of DV by 1.09538103. 
+
+
+### plot
+
+```{r}
+
+ggplot(data=wiscsub,
+       aes(x=verb1, y=grad, color =factor(female)))+
+  geom_point(alpha=0.5, size=5) +
+  xlab("verbal score") + 
+  ylab("mother's graduation")+
+  guides(color=guide_legend(title="Female"))+
+  theme_bw()+
+  stat_smooth(method='glm',methodarges=list(family='binomial',se=TRUE, fullrange=TRUE))
+
+```
+
+so far so good
+
+## twist
+
+This is the link functioin, the logit. 
+```{r}
+
+logit<-function(p){
+  log(p/(1-p))
+}
+
+```
+ 
